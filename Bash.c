@@ -22,9 +22,9 @@
 
 void prompt( ){
  
- char user[33];			//max linux user length is 32
- char  machine[HOST_NAME_MAX];	//max machine name
- char cwd[PATH_MAX + 1];	//max Path length
+ char user[33];					//max linux user length is 32
+ char  machine[HOST_NAME_MAX];			//max machine name
+ char cwd[PATH_MAX + 1];			//max Path length
  int len;
 
  strcpy( machine, getenv("MACHINE"));		//get machine string
@@ -50,7 +50,7 @@ void prompt( ){
 //
 //Written by Daniel
 
-void tokenize( char ** arg, char *line){		//Function still needs work
+void tokenize( char ** arg, char *line){	//Function still needs work
  
  int i = 0;
  int it = 0;
