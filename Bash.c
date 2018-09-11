@@ -139,11 +139,14 @@ int main(){
 
         if( (child_id = fork() ) == 0 ){
              
-                execvp(argv[0], argv);
-                printf("Unknown command %s\n", argv[0] );
+                execvp(argv[0], argv);				//code executed by child process
+                printf("Unknown command %s\n", argv[0] );	//
                 }
+
+
 	while(1){
-		x = waitpid(child_id, &status, 0);
+							//wait for child process to return
+		x = waitpid(child_id, &status, 0);	//parent process code`
 		if( x == child_id)
 			break;
 		}
