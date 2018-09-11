@@ -1,10 +1,10 @@
-//#define _GNU_SOURCE
-//#define __USE_POSIX
+#define _GNU_SOURCE
+#define __USE_POSIX
 #include <stdio.h>
 #include <stdlib.h>
 #include <readline/readline.h>
-//#include <sys/types.h>
-//#include <sys/wait.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 //#include <sys/stat.h>
 //#include <fcntl.h>
 //#include <signal.h>
@@ -105,37 +105,49 @@ int tokenize( char ** arg, char *line){
  }
 		
 
-
 int main(){
   
-	char command[256];
-	char ** argv;
-	int x;
+        char command[256];
+        char ** argv;
+        int x, status;
+	pid_t child_id, temp_id;
+        
+
+
+
 
  while(1){
-	prompt();
-	strcpy(command,readline(" "));
- 	//printf("%s\n",command);
-	if( !strcmp(command, "exit") )
-		break;
+        prompt();
+        strcpy(command,readline(" "));
+                
+        if( !strcmp(command, "exit") )
+                break;
 
 
-	printf("#%s#\n",command);
-	argv = malloc( 10 * sizeof(char*) );		//Still haven't figured out max # of tokens
 
-	for(x = 0; x < 10; ++x)				//loop to intialize pointers to NULL
+
+        argv = malloc( 10 * sizeof(char*) );            //Still haven't figured out max # of tokens
+
+
+ 
+       for(x = 0; x < 10; ++x)
 		argv[x] = NULL;
-	
-	x = tokenize(argv,command);			
-	printf("%i\n",x);				
-	
-	//for(x = 0; argv[x] != NULL; ++x)		//loop to print arguments
-	//	printf("#%s# ", argv[x]);
-	//printf("\n");
-		//print(argv);
-	
 
-	
+        x = tokenize(argv,command);                     
+	       
+
+
+        if( (child_id = fork() ) == 0 ){
+             
+                execvp(argv[0], argv);
+                printf("Unknown command %s\n", argv[0] );
+                }
+	while(1){
+		x = waitpid(child_id, &status, 0);
+		if( x == child_id)
+			break;
+		}
+        continue;
 	}
 
  exit(EXIT_SUCCESS);
