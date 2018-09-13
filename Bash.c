@@ -11,8 +11,8 @@
 //#include <ctype.h>
 #include <unistd.h>
 #include<limits.h>
-
-
+#include <stdbool.h>
+#include <dirent.h>
 
 //This function produces the prompt
 //For every time input is expected
@@ -107,11 +107,18 @@ int tokenize( char ** arg, char *line){
 
 int main(){
   
+	
+	//take this first timevalue, store in struct	
+	struct timeval  first, second;
+        gettimeofday(&first, NULL);
+
+
         char command[256];
         char ** argv;
         int x, status;
 	pid_t child_id, temp_id;
         
+	
 
 
 
@@ -119,22 +126,67 @@ int main(){
  while(1){
         prompt();
         strcpy(command,readline(" "));
-                
-        if( !strcmp(command, "exit") )
+
+	if( !strcmp(command, "exit") )
+        {
+                gettimeofday(&second, NULL);		//before, ending, take second time value and put in struct
+                printf("Exiting...\n\tSession time: %ds\n", (int) (second.tv_usec - first.tv_usec) / 1000000 +
+         (int) (second.tv_sec - first.tv_sec));		//get difference between adn first and second struct
                 break;
+        }
+                
 
 
 
 
         argv = malloc( 10 * sizeof(char*) );            //Still haven't figured out max # of tokens
 
+	
 
  
        for(x = 0; x < 10; ++x)
 		argv[x] = NULL;
 
         x = tokenize(argv,command);                     
-	       
+	
+
+
+
+	char * add;
+	bool valid_directory = false;
+	if((strcmp(argv[0], "cd") == 0) && (x > 1))
+	{
+		DIR* dir = opendir(argv[1]);		//open directory
+		if (dir)				//if it can open 
+			valid_directory = true;
+	}
+	if(x > 2)					//more than 2
+        {
+                printf("Error: Too many arguments\n");
+                continue;
+	}
+
+	else if((strcmp(argv[0], "cd") == 0) && (x == 1)){	//just cd
+                char* home = getenv("HOME");
+                chdir(home);
+                continue;
+        }
+	else if((strcmp(argv[0], "cd") == 0) && ( valid_directory == false))	//invalid directory 
+        {
+                printf("Not a directory\n");
+                continue;
+        }
+
+		
+	else if((strcmp(argv[0], "cd") == 0) && (x > 1)){		//valid directory 
+            	 char* home = getenv("HOME");
+		add = strcat(home, "/");
+		add = strcat (home, argv[1]);
+		chdir(add);
+		continue;
+			
+	}
+
 
 
         if( (child_id = fork() ) == 0 ){
