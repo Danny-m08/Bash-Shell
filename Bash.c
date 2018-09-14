@@ -135,6 +135,31 @@ int main(){
                 break;
         }
                 
+	// WRITTEN BY KOREN COLE  
+       if(strstr(command, "echo"))		// covers echo built in and env variables
+        {
+                char * echoArg;
+                if(echoArg = strchr(command, '$'))                      //if the argument has a $
+                {
+
+                        echoArg++;              // remove the $
+                        if(getenv(echoArg) != NULL)                     // check to see if environmental variable is valid
+                        {
+                                char* envVar = malloc(sizeof(getenv(echoArg)));
+                                strcpy(envVar, getenv(echoArg));
+                                printf("%s\n", envVar);
+                                free(envVar);
+                        }
+                        else
+                                printf("Argument does not exist\n");
+                }
+                else                                                    // if no $ in argument
+                {
+                        echoArg = strchr(command, ' ');
+                        printf("No $: %s \n", echoArg);
+                }
+        }
+
 
 
 
