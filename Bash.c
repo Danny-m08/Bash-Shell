@@ -176,7 +176,7 @@ int main(){
 	
 
 
-
+// WRITTEN BY MICHAEL RYAN WITH HELP FROM KOREN COLE
 	char * add;
 	bool valid_directory = false;
 	if((strcmp(argv[0], "cd") == 0) && (x > 1))
@@ -194,6 +194,7 @@ int main(){
 	else if((strcmp(argv[0], "cd") == 0) && (x == 1)){	//just cd
                 char* home = getenv("HOME");
                 chdir(home);
+		setenv("PWD", home, 1);
                 continue;
         }
 	else if((strcmp(argv[0], "cd") == 0) && ( valid_directory == false))	//invalid directory 
@@ -201,15 +202,13 @@ int main(){
                 printf("Not a directory\n");
                 continue;
         }
-
-		
 	else if((strcmp(argv[0], "cd") == 0) && (x > 1)){		//valid directory 
             	 char* home = getenv("HOME");
 		add = strcat(home, "/");
 		add = strcat (home, argv[1]);
 		chdir(add);
+		setenv("PWD", add, 1);
 		continue;
-			
 	}
 
 
