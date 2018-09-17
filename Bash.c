@@ -52,7 +52,7 @@ int tokenize( char ** arg, char *line){
  char temp;
  while( line[i] != '\0' ){
  
-	if ( !isspace( line[i] ) && line[i] != '\'' && line[i] != '\"'){
+	if ( !isspace( line[i] ) && line[i] != '\'' && line[i] != '\"' ){
         	arg[it] = &line[i];      
                 ++it;
                 ++i;
@@ -67,8 +67,8 @@ int tokenize( char ** arg, char *line){
                          }
                 }
         else if( line[i] == '\''){
-                 ++i;
                  arg[it] = &line[i];
+		 ++i;
                  ++it;
                  while( 1 ){
         	         if( line[i] == '\'' ){
@@ -83,9 +83,10 @@ int tokenize( char ** arg, char *line){
                           }
                  }
 	else if( line[i] == '\"'){
-                 ++i;
+               
                  arg[it] = &line[i];
-                 ++it;
+		++i;               
+		++it;
                  while( 1 ){
         	         if( line[i] == '\"' ){
                 	         line[i] = '\0';
@@ -98,7 +99,7 @@ int tokenize( char ** arg, char *line){
                         ++i;
                         }
                   }
-         ++i;
+	 ++i;
          }
         
  return it;
@@ -138,7 +139,8 @@ int main(){
 		argv[x] = NULL;
 
         x = tokenize(argv,command);                     
-	
+	//for(x=0; argv[x] != NULL; ++x )
+	//	printf("%s\n", argv[x]);
 
 	if( !strcmp(command, "exit") )
         {
@@ -149,29 +151,38 @@ int main(){
         }
                 
 	// WRITTEN BY KOREN COLE  
-       else if(strstr(command, "echo"))		// covers echo built in and env variables
-        {
-                char * echoArg;
-                if(echoArg = strchr(command, '$'))                      //if the argument has a $
-                {
+       else if( !strcmp("echo",argv[0]) )		// covers echo built in and env variables
+    	{
+	bool break_ = false;
+	for(x = 1; argv[x] != NULL; ++x){
+                 if(argv[x][0] == '$'){
+                         if( getenv(&argv[x][1]) == NULL ){
+                                 printf("%s: Undefined variable.\n",&argv[x][1]);
+                         	 break_ = true;
+			        break;
+                                 }
+			}
+		}
+	if( break_ ) continue;
 
-                        echoArg++;              // remove the $
-                        if(getenv(echoArg) != NULL)                     // check to see if environmental variable is valid
-                        {
-                                char* envVar = malloc(sizeof(getenv(echoArg)));
-                                strcpy(envVar, getenv(echoArg));
-                                printf("%s\n", envVar);
-                                free(envVar);
-                        }
-                        else
-                                printf("Argument does not exist\n");
-                }
-                else                                                    // if no $ in argument
-                {
-                        echoArg = strchr(command, ' ');
-                        printf("No $: %s \n", echoArg);
-                }
-        }
+       	for(x = 1; argv[x] != NULL; ++x){
+		if(argv[x][0] == '$'){
+			
+			printf("%s ", getenv(&argv[x][1]));
+			}
+		else if(argv[x][0] == '\'')
+			printf("%s ", &argv[x][1]);
+
+		else if(argv[x][0] == '\"'){
+			char * temp[10] = {NULL};
+			tokenize(temp, &argv[x][1]);
+			for(x=0; temp[x] != NULL; ++x)
+				printf("%s\n", *temp[x]);
+			}
+		else printf("%s ", argv[x] );
+	            }
+	printf("\n");
+	}
 
 
 
