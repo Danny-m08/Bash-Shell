@@ -120,12 +120,25 @@ int main(){
         
 	
 
+        argv = malloc( 10 * sizeof(char*) );            //Still haven't figured out max # of tokens
+
+	
+
+
 
 
 
  while(1){
         prompt();
         strcpy(command,readline(" "));
+	if( !strcmp(command,"" ) )
+		continue;
+
+      for(x = 0; x < 10; ++x)
+		argv[x] = NULL;
+
+        x = tokenize(argv,command);                     
+	
 
 	if( !strcmp(command, "exit") )
         {
@@ -136,7 +149,7 @@ int main(){
         }
                 
 	// WRITTEN BY KOREN COLE  
-       if(strstr(command, "echo"))		// covers echo built in and env variables
+       else if(strstr(command, "echo"))		// covers echo built in and env variables
         {
                 char * echoArg;
                 if(echoArg = strchr(command, '$'))                      //if the argument has a $
@@ -164,62 +177,52 @@ int main(){
 
 
 
-        argv = malloc( 10 * sizeof(char*) );            //Still haven't figured out max # of tokens
-
-	
-
- 
-       for(x = 0; x < 10; ++x)
-		argv[x] = NULL;
-
-        x = tokenize(argv,command);                     
-	
-
 
 // WRITTEN BY MICHAEL RYAN WITH HELP FROM KOREN COLE
-	char * add;
-	bool valid_directory = false;
-	if((strcmp(argv[0], "cd") == 0) && (x > 1))
-	{
-		DIR* dir = opendir(argv[1]);		//open directory
-		if (dir)				//if it can open 
-			valid_directory = true;
-	}
-	if(x > 2)					//more than 2
-        {
+//	char * add;
+//	bool valid_directory = false;
+	else if(strcmp(argv[0], "cd") == 0 ) {
+	//	printf("%i\n",x);
+	//	printf("cd");
+		if(x == 2){
+		//	printf("changing dir...");
+			if( chdir(argv[1]) == -1 )
+				printf("%s: No such file or directory.\n", argv[1]);		//open directory
+				}	
+		//if (dir)				//if it can open 
+			//valid_directory = true;
+		
+		else if(x > 2)				//more than 2
                 printf("Error: Too many arguments\n");
-                continue;
-	}
+               
+			
 
-	else if((strcmp(argv[0], "cd") == 0) && (x == 1)){	//just cd
-                char* home = getenv("HOME");
-                chdir(home);
-		setenv("PWD", home, 1);
-                continue;
-        }
-	else if((strcmp(argv[0], "cd") == 0) && ( valid_directory == false))	//invalid directory 
-        {
-                printf("Not a directory\n");
-                continue;
-        }
-	else if((strcmp(argv[0], "cd") == 0) && (x > 1)){		//valid directory 
-            	 char* home = getenv("HOME");
-		add = strcat(home, "/");
-		add = strcat (home, argv[1]);
-		chdir(add);
-		setenv("PWD", add, 1);
-		continue;
-	}
+		else if( x == 1) 
+			chdir( getenv("HOME"));
+        
+	//else if((strcmp(argv[0], "cd") == 0) && ( valid_directory == false))	//invalid directory 
+        //{
+          //      printf("Not a directory\n");
+            //    continue;
+        //}
+		/*else if((strcmp(argv[0], "cd") == 0) && (x > 1)){		//valid directory 
+            		 char* home = getenv("HOME");
+			add = strcat(home, "/");
+			add = strcat (home, argv[1]);
+			chdir(add);
+			setenv("PWD", add, 1);
+*/
+		}
 
 
 
-        if( (child_id = fork() ) == 0 ){
+        else if( (child_id = fork() ) == 0 ){
              
                 execvp(argv[0], argv);				//code executed by child process
                 printf("Unknown command %s\n", argv[0] );	//
                 }
-
-
+	else{
+	
 	while(1){
 							//wait for child process to return
 		x = waitpid(child_id, &status, 0);	//parent process code`
@@ -227,7 +230,7 @@ int main(){
 			break;
 		}
    
-	}
+	}}
 
  exit(EXIT_SUCCESS);
 
