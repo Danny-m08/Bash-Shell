@@ -104,6 +104,138 @@ int tokenize( char ** arg, char *line){
         
  return it;
  }
+//Written by Koren Cole
+int isCommand(char ** argv, int i)
+{
+
+        printf("argv[i]: %s \n", argv[i]);
+        // how to find the type 
+        if(strcmp(argv[i], "cd") == 0)
+                return 1;
+        else if(strcmp(argv[i], "echo") == 0 || strcmp(argv[i], "io") == 0)
+                return 2;
+        else if(i >= 1)
+        {
+                return 0;               // its an argument 
+        }
+        else
+                return 3;               // external command
+}
+
+char *expandPath(char *path, int cmd)
+{
+        char * tempPath; // = malloc(strlen(path) * sizeof(char));
+        char * envPath;
+        char *temp;
+        char *varLocation;
+        char *expPath;
+        bool commandFound = false;
+        struct stat buffer;
+        int exists;
+        size_t tempSize;
+        //expand the environmental variables
+        if((envPath = strstr(path, "$")) != NULL)
+        {
+                envPath++;              //remove the $
+                temp = strchr(envPath,'/');
+                tempSize = strlen(envPath) - strlen(temp);
+                memcpy(varLocation, envPath, tempSize);
+                varLocation[tempSize]='\0';
+                tempPath = getenv(varLocation);
+                strcat(tempPath, temp);
+                strcpy(path,tempPath);
+        }
+        if((expPath = strstr(path, "..")) != NULL)
+        {
+                tempPath = getenv("PWD");
+                printf("temp path: %s\n", tempPath);
+                // if just .. 
+                if(strlen(path) <=2)
+                {
+                        printf("just ..\n");
+                        temp = strrchr(tempPath,'/');
+                        printf("this is var temp: %s\n", temp);
+                        tempSize = strlen(tempPath) - strlen(temp);
+                        printf("tempsixe: %i \n", tempSize);
+                        varLocation = malloc(tempSize +1);
+                        strncpy(varLocation, tempPath, tempSize);
+                        varLocation[tempSize] = '\0';
+                        printf("this is varLocation: %s\n", varLocation);
+                        strcpy(path,varLocation);
+                        free(varLocation);
+                }
+               // if within the path   
+
+        //      while(!commandFound) 
+        //      {
+        //              
+
+        //      }
+
+        }
+        //expand the  .. 
+        //expand the .
+        //expand the ~ 
+
+        switch(cmd)
+        {
+                case 0 :                                                        //this is an arg
+                        printf("Case 0, its an argument %s \n", path);
+                        return path;
+                        break;
+                case 1:                                                         // this is CD
+                        printf("Case 1, its a cd %s \n", path);
+                        return path;
+                        break;
+                case 2:                                                         // this is built in 
+                        printf("Case 2, its built in %s \n", path);
+                        break;
+                case 3:
+                        // need to loop through each case and see if its there or not
+                        // have to find in path
+                        tempPath = malloc(strlen(getenv("PATH")));
+                        tempPath = getenv("PATH");
+                        while(!commandFound)
+                        {
+                                varLocation = strchr(tempPath, ':');
+                                tempSize = strlen(tempPath) - strlen(varLocation);
+                                varLocation++;                          // takes out this colon
+                                temp = malloc(tempSize + strlen(path) + 2);
+                                strncpy(temp, tempPath,tempSize);
+                                strcat(temp,"/");
+                                strcat(temp, path);
+                                strcat(temp, "\0");
+                        // check if its here, otherwise start again 
+
+                                if(stat(temp, &buffer) == 0 && buffer.st_mode & S_IXUSR)
+                                {
+                                        commandFound = true;
+                                        return temp;
+                                        free(temp);
+                                }
+   else
+                                {
+                                        commandFound = false;
+                                        strcpy(tempPath, varLocation);
+                                        free(temp);
+                                }
+                        }
+                        break;
+                default:
+                        printf("Case default %s \n", path);
+        }
+}
+char ** pathRes(char ** args)
+{
+        int i;
+        for(i=0; args[i] != NULL; i++)
+        {
+                args[i] = expandPath(args[i], isCommand(args, i));
+                printf("this is args[%i]: %s \n", i, args[i]);
+        }
+        return args;
+
+}
 
 
 int main(){
@@ -140,6 +272,9 @@ int main(){
 	//for(x=0; argv[x] != NULL; ++x )
 	//	printf("%s\n", argv[x]);
 
+	argv = pathRes(argv);
+	 
+	 
 	if( !strcmp(command, "exit") )
         {
                 gettimeofday(&second, NULL);		//before, ending, take second time value and put in struct
