@@ -112,7 +112,7 @@ int isCommand(char ** argv, int i)
         // how to find the type 
         if(strcmp(argv[i], "cd") == 0)
                 return 1;
-        else if(strcmp(argv[i], "echo") == 0 || strcmp(argv[i], "io") == 0)
+        else if(strcmp(argv[i], "echo") == 0 || strcmp(argv[i], "io") == 0 || strcmp(argv[i], "exit") == 0 )
                 return 2;
         else if(i >= 1)
         {
@@ -189,7 +189,8 @@ char *expandPath(char *path, int cmd)
                         break;
                 case 2:                                                         // this is built in 
                         printf("Case 2, its built in %s \n", path);
-                        break;
+                        return path;
+			break;
                 case 3:
                         // need to loop through each case and see if its there or not
                         // have to find in path
