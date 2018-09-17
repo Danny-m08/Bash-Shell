@@ -11,8 +11,8 @@
 //#include <ctype.h>
 #include <unistd.h>
 #include<limits.h>
-
-
+#include <stdbool.h>
+#include <dirent.h>
 
 //This function produces the prompt
 //For every time input is expected
@@ -107,11 +107,18 @@ int tokenize( char ** arg, char *line){
 
 int main(){
   
+	
+	//take this first timevalue, store in struct	
+	struct timeval  first, second;
+        gettimeofday(&first, NULL);
+
+
         char command[256];
         char ** argv;
         int x, status;
 	pid_t child_id, temp_id;
         
+	
 
 
 
@@ -119,22 +126,91 @@ int main(){
  while(1){
         prompt();
         strcpy(command,readline(" "));
-                
-        if( !strcmp(command, "exit") )
+
+	if( !strcmp(command, "exit") )
+        {
+                gettimeofday(&second, NULL);		//before, ending, take second time value and put in struct
+                printf("Exiting...\n\tSession time: %ds\n", (int) (second.tv_usec - first.tv_usec) / 1000000 +
+         (int) (second.tv_sec - first.tv_sec));		//get difference between adn first and second struct
                 break;
+        }
+                
+	// WRITTEN BY KOREN COLE  
+       if(strstr(command, "echo"))		// covers echo built in and env variables
+        {
+                char * echoArg;
+                if(echoArg = strchr(command, '$'))                      //if the argument has a $
+                {
+
+                        echoArg++;              // remove the $
+                        if(getenv(echoArg) != NULL)                     // check to see if environmental variable is valid
+                        {
+                                char* envVar = malloc(sizeof(getenv(echoArg)));
+                                strcpy(envVar, getenv(echoArg));
+                                printf("%s\n", envVar);
+                                free(envVar);
+                        }
+                        else
+                                printf("Argument does not exist\n");
+                }
+                else                                                    // if no $ in argument
+                {
+                        echoArg = strchr(command, ' ');
+                        printf("No $: %s \n", echoArg);
+                }
+        }
+
 
 
 
 
         argv = malloc( 10 * sizeof(char*) );            //Still haven't figured out max # of tokens
 
+	
 
  
        for(x = 0; x < 10; ++x)
 		argv[x] = NULL;
 
         x = tokenize(argv,command);                     
-	       
+	
+
+
+// WRITTEN BY MICHAEL RYAN WITH HELP FROM KOREN COLE
+	char * add;
+	bool valid_directory = false;
+	if((strcmp(argv[0], "cd") == 0) && (x > 1))
+	{
+		DIR* dir = opendir(argv[1]);		//open directory
+		if (dir)				//if it can open 
+			valid_directory = true;
+	}
+	if(x > 2)					//more than 2
+        {
+                printf("Error: Too many arguments\n");
+                continue;
+	}
+
+	else if((strcmp(argv[0], "cd") == 0) && (x == 1)){	//just cd
+                char* home = getenv("HOME");
+                chdir(home);
+		setenv("PWD", home, 1);
+                continue;
+        }
+	else if((strcmp(argv[0], "cd") == 0) && ( valid_directory == false))	//invalid directory 
+        {
+                printf("Not a directory\n");
+                continue;
+        }
+	else if((strcmp(argv[0], "cd") == 0) && (x > 1)){		//valid directory 
+            	 char* home = getenv("HOME");
+		add = strcat(home, "/");
+		add = strcat (home, argv[1]);
+		chdir(add);
+		setenv("PWD", add, 1);
+		continue;
+	}
+
 
 
         if( (child_id = fork() ) == 0 ){
