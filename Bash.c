@@ -84,7 +84,7 @@ int tokenize( char ** arg, char *line){
                  }
 	else if( line[i] == '\"'){
                
-                 arg[it] = &line[i];
+                arg[it] = &line[i];
 		++i;               
 		++it;
                  while( 1 ){
@@ -150,6 +150,7 @@ int main(){
                 break;
         }
                 
+
 	// WRITTEN BY KOREN COLE  
        else if( !strcmp("echo",argv[0]) )		// covers echo built in and env variables
     	{
@@ -186,43 +187,22 @@ int main(){
 
 
 
-
-
-
 // WRITTEN BY MICHAEL RYAN WITH HELP FROM KOREN COLE
 //	char * add;
 //	bool valid_directory = false;
 	else if(strcmp(argv[0], "cd") == 0 ) {
-	//	printf("%i\n",x);
-	//	printf("cd");
 		if(x == 2){
-		//	printf("changing dir...");
 			if( chdir(argv[1]) == -1 )
 				printf("%s: No such file or directory.\n", argv[1]);		//open directory
 				}	
-		//if (dir)				//if it can open 
-			//valid_directory = true;
-		
+	
 		else if(x > 2)				//more than 2
                 printf("Error: Too many arguments\n");
-               
-			
+               			
 
 		else if( x == 1) 
 			chdir( getenv("HOME"));
         
-	//else if((strcmp(argv[0], "cd") == 0) && ( valid_directory == false))	//invalid directory 
-        //{
-          //      printf("Not a directory\n");
-            //    continue;
-        //}
-		/*else if((strcmp(argv[0], "cd") == 0) && (x > 1)){		//valid directory 
-            		 char* home = getenv("HOME");
-			add = strcat(home, "/");
-			add = strcat (home, argv[1]);
-			chdir(add);
-			setenv("PWD", add, 1);
-*/
 		}
 
 
@@ -234,14 +214,15 @@ int main(){
                 }
 	else{
 	
-	while(1){
+	 while(1){
 							//wait for child process to return
 		x = waitpid(child_id, &status, 0);	//parent process code`
 		if( x == child_id)
 			break;
 		}
    
-	}}
+	}
+ }
 
  exit(EXIT_SUCCESS);
 
