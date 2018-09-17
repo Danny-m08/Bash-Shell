@@ -150,7 +150,7 @@ int main(){
 		if( x == child_id)
 			break;
 		}
-        continue;
+   
 	}
 
  exit(EXIT_SUCCESS);
