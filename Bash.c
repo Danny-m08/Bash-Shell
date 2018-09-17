@@ -356,14 +356,14 @@ int main(){
 
 
         else if( (child_id = fork() ) == 0 ){
-             	char  path[PATH_MAX];
+             /*	char  path[PATH_MAX];
 		strcpy( path, "/bin/");
 		strcat( path, argv[0] );
                 execv( path , argv);
 		strcpy(path, getcwd(NULL,PATH_MAX) );
 		strcat(path, argv[0]);
-		execv(path, argv);				//code executed by child process
-                printf("Unknown command %s\n", argv[0] );	//
+	*/ 	execv(argv[0], argv);				//code executed by child process
+                printf("Unknown command %s\n", argv[0] );	// needs to be in this format to work with path resolution
                 }
 	else{
 	
