@@ -164,18 +164,40 @@ char *expandPath(char *path, int cmd)
                         strcpy(path,varLocation);
                         free(varLocation);
                 }
-               // if within the path   
-
-        //      while(!commandFound) 
-        //      {
-        //              
-
-        //      }
-
+	if((expPath = strstr(path, ".")) != NULL)
+		{
+			//printf("relative to curr directory");
+			expPath++;                      //gets rid of ./ at the beginning 
+			//printf("this is exp Path: %s \n", expPath);
+			tempPath = malloc(strlen(getenv("PWD")));
+			strcpy(tempPath, getenv("PWD"));
+			tempPath = realloc(tempPath, strlen(tempPath) + strlen(expPath));
+			strcat(tempPath, expPath);
+			//printf("this is temppath: %s \n", tempPath);
+			strcpy(path, tempPath);
+			free(tempPath);
+		}
+		
+	//expand the ~ 
+        if((expPath = strstr(path, "~")) != NULL)
+        {
+                printf("contains ~ \n");
+                if(expPath == path)                     // if ~ at the beginning of the argument
+                {
+                        printf("at beginning of path\n");
+                        expPath++;                      // remove ~ 
+                        tempPath = malloc(strlen(getenv("HOME")));
+                        strcpy(tempPath, getenv("HOME"));
+                        tempPath = realloc(tempPath, strlen(tempPath) + strlen (expPath));
+                        strcat(tempPath, expPath);
+                        strcpy(path, tempPath);
+                        free(tempPath);
+                }
+                else
+                        printf("Incorrect syntax of \'~\' \n");
         }
-        //expand the  .. 
-        //expand the .
-        //expand the ~ 
+
+
 
         switch(cmd)
         {
@@ -214,8 +236,8 @@ char *expandPath(char *path, int cmd)
                                 if(stat(temp, &buffer) == 0 && buffer.st_mode & S_IXUSR)
                                 {
                                         commandFound = true;
-                                        strcpy(path,temp);
-                                        free(temp);
+                                        //strcpy(path,temp);
+                                        //free(temp);
                                         //tempPath = "\0";
                                         //printf("path: %s \n", tempPath); 
                                         //return path; 
@@ -223,6 +245,11 @@ char *expandPath(char *path, int cmd)
                                 else
                                 {
                                         commandFound = false;
+                                        if(strlen(varLocation) < 2)
+                                        {
+                                                printf("Command not found. \n");
+                                                return path;
+                                        }
                                         strcpy(tempPath, varLocation);
                                         //printf("temp path after false: %s \n", tempPath);
                                         free(temp);
@@ -231,7 +258,7 @@ char *expandPath(char *path, int cmd)
                         if(commandFound == true)
                         {
                                 free(tempPath);
-                                return path;
+                                return temp;
                         }
                         break;
 
