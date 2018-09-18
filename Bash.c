@@ -14,12 +14,6 @@
 #include <stdbool.h>
 #include <dirent.h>
 #include<string.h>
-//This function produces the prompt
-//For every time input is expected
-//from within the shell.
-//
-//Written By Daniel
-
 
 char *expandPath(char *path, int cmd)
 {
@@ -188,6 +182,12 @@ if((expPath = strstr(path, ".")) != NULL)
 
 
 
+//This function produces the prompt
+//For every time input is expected
+//from within the shell.
+//
+//Written By Daniel
+
 
 void prompt( ){
  int len;
@@ -219,10 +219,10 @@ int tokenize( char ** arg, char *line, char **out_redir, char **in_redir){
  int i = 0;
  int it = 0;
  char temp;
-
+  *out_redir = *in_redir = NULL;
 
  while( line[i] != '\0' ){
-  *out_redir = *in_redir = NULL;
+
 
 	if( line[i] == '>' ){
 		line[i] = '\0';
