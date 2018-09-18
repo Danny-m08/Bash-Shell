@@ -145,25 +145,47 @@ char *expandPath(char *path, int cmd)
                 strcat(tempPath, temp);
                 strcpy(path,tempPath);
         }
-        if((expPath = strstr(path, "..")) != NULL)
+     if((expPath = strstr(path, "..")) != NULL)  // expand ..
         {
-                tempPath = getenv("PWD");
-                printf("temp path: %s\n", tempPath);
-                // if just .. 
-                if(strlen(path) <=2)
+                tempPath = malloc(strlen(getenv("PWD")));
+                strcpy(tempPath, getenv("PWD"));
+                //printf("temp path: %s\n", tempPath);
+                varLocation = malloc(strlen(tempPath));
+                strcpy(varLocation, tempPath);
+                while(!commandFound)
                 {
-                        printf("just ..\n");
-                        temp = strrchr(tempPath,'/');
-                        printf("this is var temp: %s\n", temp);
-                        tempSize = strlen(tempPath) - strlen(temp);
-                        printf("tempsixe: %i \n", tempSize);
+                        //printf("just ..\n");
+                        temp = strrchr(varLocation,'/');
+                        //printf("this is var temp: %s\n", temp); 
+                        tempSize = strlen(varLocation) - strlen(temp);
+                        //printf("tempsixe: %i \n", tempSize);
+                        if(commandFound == false && tempSize == 0)
+                        {
+                                //printf("this is the path if comm is false: %s\n", varLocation);
+                                printf("At the root, cannot go to any other directory.\n");
+                                strcpy(path, varLocation);
+                                free(varLocation);
+                                free(tempPath);
+                                return path;                    // exits early  
+                        }
                         varLocation = malloc(tempSize +1);
                         strncpy(varLocation, tempPath, tempSize);
                         varLocation[tempSize] = '\0';
-                        printf("this is varLocation: %s\n", varLocation);
-                        strcpy(path,varLocation);
-                        free(varLocation);
+                        //printf("this is varLocation: %s\n", varLocation);
+                        //strcpy(path,varLocation);
+                        path = path + 3;                // remove the .. and next / 
+                        //free(varLocation);
+                        //printf("this is the path now:%s\n ", path);
+                        if((expPath = strstr(path,"..")) == NULL)
+                        {
+                                commandFound = true;
+                                strcpy(path, varLocation);
+                                free(varLocation);
+                                free(tempPath);
+                        }
                 }
+        }
+
 	if((expPath = strstr(path, ".")) != NULL)
 		{
 			//printf("relative to curr directory");
