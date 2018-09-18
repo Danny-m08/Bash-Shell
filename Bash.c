@@ -5,8 +5,8 @@
 #include <readline/readline.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-//#include <sys/stat.h>
-//#include <fcntl.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 //#include <signal.h>
 //#include <ctype.h>
 #include <unistd.h>
@@ -46,25 +46,82 @@ void prompt( ){
 //for a similar project in UnixTools
 //But the code is 100% mine
 
-int tokenize( char ** arg, char *line){	
+int tokenize( char ** arg, char *line, char  *out_redir, char  *in_redir){	
  int i = 0;
  int it = 0;
  char temp;
+
+
  while( line[i] != '\0' ){
- 
-	if ( !isspace( line[i] ) && line[i] != '\'' && line[i] != '\"' ){
+  out_redir = in_redir = NULL;
+
+	if( line[i] == '>' ){
+		line[i] = '\0';
+		while( isspace( line[++i] ))
+			line[i] = '\0';
+		out_redir = &line[i];
+		while( !isspace(line[++i]) && line[i] != '\0')
+                        continue;
+                line[i] = '\0';
+		}
+	
+	else if( line[i] == '<' ){
+		line[i] = '\0';
+		while( isspace( line[++i] ) )
+			line[i] = '\0';
+		in_redir = &line[i];	
+		while( !isspace(line[++i]) && line[i] != '>')
+                       continue;
+		if(line[i] != '>')
+	                line[i] = '\0';
+		}
+
+
+	else if ( !isspace( line[i] ) && line[i] != '\'' && line[i] != '\"' ){
+		if( in_redir != NULL || out_redir != NULL )
+			continue;
+					
         	arg[it] = &line[i];      
                 ++it;
-                ++i;
+                //+i;
                 while( 1 ){
-                	if( isspace( line[i])){
+			++i;		
+			if( line[i] == '<'){
+				line[i] = '\0';	
+							
+				while( isspace(line[++i]))
+					line[i] = '\0';
+				in_redir = & line[i];
+				while( !isspace(line[++i]) && line[i] != '>' )
+					continue;
+				line[i] = '\0';
+				while( isspace(line[++i]))
+                                        line[i] = '\0';
+                                out_redir = & line[i];
+                                while( !isspace(line[++i] ))
+                                        continue;
+                                line[i] = '\0';
+				break;
+				}
+			else if (line[i] == '>'){
+				line[i] = '\0';
+                                while( isspace(line[++i]))
+                                        line[i] = '\0';
+                                out_redir = & line[i];
+				while( !isspace(line[++i] ))
+                                        continue;
+                                line[i] = '\0';
+				break;
+				}
+                	else if( isspace( line[i])){
                         	line[i] = '\0';
                                  break;
                                  }
                          else if( line[i] == '\0' )
                                  return it;
-                                 ++i;
+                                 
                          }
+		//++i;
                 }
         else if( line[i] == '\''){
                  arg[it] = &line[i];
@@ -99,144 +156,70 @@ int tokenize( char ** arg, char *line){
                         ++i;
                         }
                   }
+	else if( isspace(line[i]) )
+		line[i] = '\0';
+	
 	 ++i;
          }
-        
+  
+ printf("file ouput redirect: %s$\nfile input redirect:%s$\n", out_redir, in_redir);      
  return it;
  }
-//Written by Koren Cole
-int isCommand(char ** argv, int i)
-{
 
-        printf("argv[i]: %s \n", argv[i]);
-        // how to find the type 
-        if(strcmp(argv[i], "cd") == 0)
-                return 1;
-        else if(strcmp(argv[i], "echo") == 0 || strcmp(argv[i], "io") == 0 || strcmp(argv[i], "exit") == 0 )
-                return 2;
-        else if(i >= 1)
-        {
-                return 0;               // its an argument 
-        }
-        else
-                return 3;               // external command
-}
 
-char *expandPath(char *path, int cmd)
-{
-        char * tempPath; // = malloc(strlen(path) * sizeof(char));
-        char * envPath;
-        char *temp;
-        char *varLocation;
-        char *expPath;
-        bool commandFound = false;
-        struct stat buffer;
-        int exists;
-        size_t tempSize;
-        //expand the environmental variables
-        if((envPath = strstr(path, "$")) != NULL)
-        {
-                envPath++;              //remove the $
-                temp = strchr(envPath,'/');
-                tempSize = strlen(envPath) - strlen(temp);
-                memcpy(varLocation, envPath, tempSize);
-                varLocation[tempSize]='\0';
-                tempPath = getenv(varLocation);
-                strcat(tempPath, temp);
-                strcpy(path,tempPath);
-        }
-        if((expPath = strstr(path, "..")) != NULL)
-        {
-                tempPath = getenv("PWD");
-                printf("temp path: %s\n", tempPath);
-                // if just .. 
-                if(strlen(path) <=2)
-                {
-                        printf("just ..\n");
-                        temp = strrchr(tempPath,'/');
-                        printf("this is var temp: %s\n", temp);
-                        tempSize = strlen(tempPath) - strlen(temp);
-                        printf("tempsixe: %i \n", tempSize);
-                        varLocation = malloc(tempSize +1);
-                        strncpy(varLocation, tempPath, tempSize);
-                        varLocation[tempSize] = '\0';
-                        printf("this is varLocation: %s\n", varLocation);
-                        strcpy(path,varLocation);
-                        free(varLocation);
-                }
-               // if within the path   
 
-        //      while(!commandFound) 
-        //      {
-        //              
 
-        //      }
 
-        }
-        //expand the  .. 
-        //expand the .
-        //expand the ~ 
 
-        switch(cmd)
-        {
-                case 0 :                                                        //this is an arg
-                        printf("Case 0, its an argument %s \n", path);
-                        return path;
-                        break;
-                case 1:                                                         // this is CD
-                        printf("Case 1, its a cd %s \n", path);
-                        return path;
-                        break;
-                case 2:                                                         // this is built in 
-                        printf("Case 2, its built in %s \n", path);
-                        return path;
-			break;
-                case 3:
-                        // need to loop through each case and see if its there or not
-                        // have to find in path
-                        tempPath = malloc(strlen(getenv("PATH")));
-                        tempPath = getenv("PATH");
-                        while(!commandFound)
-                        {
-                                varLocation = strchr(tempPath, ':');
-                                tempSize = strlen(tempPath) - strlen(varLocation);
-                                varLocation++;                          // takes out this colon
-                                temp = malloc(tempSize + strlen(path) + 2);
-                                strncpy(temp, tempPath,tempSize);
-                                strcat(temp,"/");
-                                strcat(temp, path);
-                                strcat(temp, "\0");
-                        // check if its here, otherwise start again 
+int findoutputRedirect( char ** argv ){
+	int x;
+	for( x = 0; argv[x] != NULL; ++x){
+		if( !strcmp(">",argv[x]) )
+			return x;
+		}
+	}
 
-                                if(stat(temp, &buffer) == 0 && buffer.st_mode & S_IXUSR)
-                                {
-                                        commandFound = true;
-                                        return temp;
-                                        free(temp);
-                                }
-   else
-                                {
-                                        commandFound = false;
-                                        strcpy(tempPath, varLocation);
-                                        free(temp);
-                                }
-                        }
-                        break;
-                default:
-                        printf("Case default %s \n", path);
-        }
-}
-char ** pathRes(char ** args)
-{
-        int i;
-        for(i=0; args[i] != NULL; i++)
-        {
-                args[i] = expandPath(args[i], isCommand(args, i));
-                printf("this is args[%i]: %s \n", i, args[i]);
-        }
-        return args;
 
-}
+
+
+int findinputRedirect( char ** argv ){
+	int x;
+	for( x = 0; argv[x] != NULL; ++x){
+		if( !strcmp(">", argv[x]) )
+			return x;
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 int main(){
@@ -247,12 +230,17 @@ int main(){
         gettimeofday(&first, NULL);
 
 
-        char command[256];
+        char *command = malloc(256 * sizeof(char));
         char ** argv;
+	char * in_file = NULL;
+	char * out_file = NULL;
+
+
         int x, status;
 	pid_t child_id, temp_id;
         
-	
+	int pipe, redir;
+	int fd1, fd2;
 
         argv = malloc( 10 * sizeof(char*) );            //Still haven't figured out max # of tokens
 
@@ -269,13 +257,10 @@ int main(){
       for(x = 0; x < 10; ++x)
 		argv[x] = NULL;
 
-        x = tokenize(argv,command);                     
-	//for(x=0; argv[x] != NULL; ++x )
-	//	printf("%s\n", argv[x]);
+        x = tokenize(argv,command, out_file, in_file);                     
+	for(x=0; argv[x] != NULL; ++x )
+		printf("%s\n", argv[x]);
 
-	argv = pathRes(argv);
-	 
-	 
 	if( !strcmp(command, "exit") )
         {
                 gettimeofday(&second, NULL);		//before, ending, take second time value and put in struct
@@ -309,10 +294,10 @@ int main(){
 			printf("%s ", &argv[x][1]);
 
 		else if(argv[x][0] == '\"'){
-			char * temp[10] = {NULL};
-			for(x = 0; x < 10; ++x)
-				temp[x] = NULL;
-			tokenize(temp, &argv[x][1]);
+	//		char * temp[10] = {NULL};
+	//		for(x = 0; x < 10; ++x)
+	//			temp[x] = NULL;
+	//		tokenize(temp, &argv[x][1]);
 			//for(x=0; temp[x] != NULL; ++x)
 			//	printf("%s\n", *temp[x]);
 			}
@@ -357,14 +342,30 @@ int main(){
 
 
         else if( (child_id = fork() ) == 0 ){
-             /*	char  path[PATH_MAX];
+		
+		//for (x = 0; x < 10; ++x)
+		//	arg2[x] = NULL;
+
+             	if( out_file != NULL && in_file != NULL )
+			x = x;
+		else if (out_file != NULL ){
+			fd1 = open( out_file, O_CREAT | O_WRONLY);
+			if( fd1!= -1 )
+				dup2(fd1, 1);
+			}
+		else if( in_file != NULL ){
+			fd1 = open( in_file, O_RDONLY );
+			if( fd1 != -1 )
+				dup2(fd1, 0);
+			}
+		char  path[PATH_MAX];
 		strcpy( path, "/bin/");
 		strcat( path, argv[0] );
                 execv( path , argv);
 		strcpy(path, getcwd(NULL,PATH_MAX) );
 		strcat(path, argv[0]);
-	*/ 	execv(argv[0], argv);				//code executed by child process
-                printf("Unknown command %s\n", argv[0] );	// needs to be in this format to work with path resolution
+		execv(path, argv);				//code executed by child process
+                printf("Unknown command %s\n", argv[0] );	//
                 }
 	else{
 	
