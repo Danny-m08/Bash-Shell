@@ -166,10 +166,174 @@ int tokenize( char ** arg, char *line, char  *out_redir, char  *in_redir){
  return it;
  }
 
+<<<<<<< HEAD
 
 
 
 
+=======
+char *expandPath(char *path, int cmd)
+{
+        char * tempPath; // = malloc(strlen(path) * sizeof(char));
+        char * envPath;
+        char *temp;
+        char *varLocation;
+        char *expPath;
+        bool commandFound = false;
+        struct stat buffer;
+        int exists;
+        size_t tempSize;
+        //expand the environmental variables
+        if((envPath = strstr(path, "$")) != NULL)
+        {
+                envPath++;              //remove the $
+                temp = strchr(envPath,'/');
+                tempSize = strlen(envPath) - strlen(temp);
+                memcpy(varLocation, envPath, tempSize);
+                varLocation[tempSize]='\0';
+                tempPath = getenv(varLocation);
+                strcat(tempPath, temp);
+                strcpy(path,tempPath);
+        }
+     if((expPath = strstr(path, "..")) != NULL)  // expand ..
+        {
+                tempPath = malloc(strlen(getenv("PWD")));
+                strcpy(tempPath, getenv("PWD"));
+                //printf("temp path: %s\n", tempPath);
+                varLocation = malloc(strlen(tempPath));
+                strcpy(varLocation, tempPath);
+                while(!commandFound)
+                {
+                        //printf("just ..\n");
+                        temp = strrchr(varLocation,'/');
+                        //printf("this is var temp: %s\n", temp); 
+                        tempSize = strlen(varLocation) - strlen(temp);
+                        //printf("tempsixe: %i \n", tempSize);
+                        if(commandFound == false && tempSize == 0)
+                        {
+                                //printf("this is the path if comm is false: %s\n", varLocation);
+                                printf("At the root, cannot go to any other directory.\n");
+                                strcpy(path, varLocation);
+                                free(varLocation);
+                                free(tempPath);
+                                return path;                    // exits early  
+                        }
+                        varLocation = malloc(tempSize +1);
+                        strncpy(varLocation, tempPath, tempSize);
+                        varLocation[tempSize] = '\0';
+                        //printf("this is varLocation: %s\n", varLocation);
+                        //strcpy(path,varLocation);
+                        path = path + 3;                // remove the .. and next / 
+                        //free(varLocation);
+                        //printf("this is the path now:%s\n ", path);
+                        if((expPath = strstr(path,"..")) == NULL)
+                        {
+                                commandFound = true;
+                                strcpy(path, varLocation);
+                                free(varLocation);
+                                free(tempPath);
+                        }
+                }
+        }
+
+	if((expPath = strstr(path, ".")) != NULL)
+		{
+			//printf("relative to curr directory");
+			expPath++;                      //gets rid of ./ at the beginning 
+			//printf("this is exp Path: %s \n", expPath);
+			tempPath = malloc(strlen(getenv("PWD")));
+			strcpy(tempPath, getenv("PWD"));
+			tempPath = realloc(tempPath, strlen(tempPath) + strlen(expPath));
+			strcat(tempPath, expPath);
+			//printf("this is temppath: %s \n", tempPath);
+			strcpy(path, tempPath);
+			free(tempPath);
+		}
+		
+	//expand the ~ 
+        if((expPath = strstr(path, "~")) != NULL)
+        {
+                printf("contains ~ \n");
+                if(expPath == path)                     // if ~ at the beginning of the argument
+                {
+                        printf("at beginning of path\n");
+                        expPath++;                      // remove ~ 
+                        tempPath = malloc(strlen(getenv("HOME")));
+                        strcpy(tempPath, getenv("HOME"));
+                        tempPath = realloc(tempPath, strlen(tempPath) + strlen (expPath));
+                        strcat(tempPath, expPath);
+                        strcpy(path, tempPath);
+                        free(tempPath);
+                }
+                else
+                        printf("Incorrect syntax of \'~\' \n");
+        }
+
+
+
+        switch(cmd)
+        {
+                case 0 :                                                        //this is an arg
+                        printf("Case 0, its an argument %s \n", path);
+                        return path;
+                        break;
+                case 1:                                                         // this is CD
+                        printf("Case 1, its a cd %s \n", path);
+                        return path;
+                        break;
+                case 2:                                                         // this is built in 
+                        printf("Case 2, its built in %s \n", path);
+                        return path;
+			break;
+                case 3:
+                        // need to loop through each case and see if its there or not
+                        // have to find in path
+                        tempPath = malloc(strlen(getenv("PATH")));
+                        strcpy(tempPath,getenv("PATH"));
+                        //printf("tempPath: %s\n", tempPath);
+                        while(!commandFound)
+                        {
+                                varLocation = strchr(tempPath, ':');
+                                tempSize = strlen(tempPath) - strlen(varLocation);
+                                varLocation++;                          // takes out this colon
+                                //printf("varLocation: %s\n", varLocation);
+                                temp = calloc(tempSize + strlen(path) + 2, sizeof(char));
+                                //printf("malloc vs strlen(should be zero): %i vs %i",tempSize + strlen(path) +2, strlen(temp));
+                                strncpy(temp, tempPath,tempSize);
+                                strcat(temp,"/");
+                                strcat(temp, path);
+                                strcat(temp, "\0");
+                        // check if its here, otherwise start again 
+                                //printf("find seg fault: %s  \n", temp);
+                                if(stat(temp, &buffer) == 0 && buffer.st_mode & S_IXUSR)
+                                {
+                                        commandFound = true;
+                                        //strcpy(path,temp);
+                                        //free(temp);
+                                        //tempPath = "\0";
+                                        //printf("path: %s \n", tempPath); 
+                                        //return path; 
+                                }
+                                else
+                                {
+                                        commandFound = false;
+                                        if(strlen(varLocation) < 2)
+                                        {
+                                                printf("Command not found. \n");
+                                                return path;
+                                        }
+                                        strcpy(tempPath, varLocation);
+                                        //printf("temp path after false: %s \n", tempPath);
+                                        free(temp);
+                                }
+                        }
+                        if(commandFound == true)
+                        {
+                                free(tempPath);
+                                return temp;
+                        }
+                        break;
+>>>>>>> 04b9357fae57b482faf3b1eb5bf2c106630ce89d
 
 int findoutputRedirect( char ** argv ){
 	int x;
