@@ -195,33 +195,46 @@ char *expandPath(char *path, int cmd)
                         // need to loop through each case and see if its there or not
                         // have to find in path
                         tempPath = malloc(strlen(getenv("PATH")));
-                        tempPath = getenv("PATH");
+                        strcpy(tempPath,getenv("PATH"));
+                        //printf("tempPath: %s\n", tempPath);
                         while(!commandFound)
                         {
                                 varLocation = strchr(tempPath, ':');
                                 tempSize = strlen(tempPath) - strlen(varLocation);
                                 varLocation++;                          // takes out this colon
-                                temp = malloc(tempSize + strlen(path) + 2);
+                                //printf("varLocation: %s\n", varLocation);
+                                temp = calloc(tempSize + strlen(path) + 2, sizeof(char));
+                                //printf("malloc vs strlen(should be zero): %i vs %i",tempSize + strlen(path) +2, strlen(temp));
                                 strncpy(temp, tempPath,tempSize);
                                 strcat(temp,"/");
                                 strcat(temp, path);
                                 strcat(temp, "\0");
                         // check if its here, otherwise start again 
-
+                                //printf("find seg fault: %s  \n", temp);
                                 if(stat(temp, &buffer) == 0 && buffer.st_mode & S_IXUSR)
                                 {
                                         commandFound = true;
-                                        return temp;
+                                        strcpy(path,temp);
                                         free(temp);
+                                        //tempPath = "\0";
+                                        //printf("path: %s \n", tempPath); 
+                                        //return path; 
                                 }
-   else
+                                else
                                 {
                                         commandFound = false;
                                         strcpy(tempPath, varLocation);
+                                        //printf("temp path after false: %s \n", tempPath);
                                         free(temp);
                                 }
                         }
+                        if(commandFound == true)
+                        {
+                                free(tempPath);
+                                return path;
+                        }
                         break;
+
                 default:
                         printf("Case default %s \n", path);
         }
