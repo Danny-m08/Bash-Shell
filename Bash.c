@@ -355,7 +355,7 @@ forkANDexec(char * out_file, char *in_file, char **argv){
 		}
    
 	}
-
+}
 
 
 
@@ -394,7 +394,6 @@ int main(){
 	prompt();
         strcpy(command,readline(" "));
 	
-
 	if( !strcmp(command,"" ) )
 		continue;
 
@@ -406,10 +405,7 @@ int main(){
 	for(x = 0; argv[x] != NULL; ++x){
 		if( !strcmp("|",argv[x]))
 			strcpy(argv[x],"\0");
-
-
-//	printf("out_file: %s\n", out_file);
-//	printf("in_file: %s\n",in_file);
+		}	
 	for(x=0; argv[x] != NULL; ++x )
 		printf("%s\n", argv[x]);
 
@@ -445,32 +441,20 @@ int main(){
 		else if(argv[x][0] == '\'')
 			printf("%s ", &argv[x][1]);
 
-		//else if(argv[x][0] == '\"'){
-	//		char * temp[10] = {NULL};
-	//		for(x = 0; x < 10; ++x)
-	//			temp[x] = NULL;
-	//		tokenize(temp, &argv[x][1]);
-			//for(x=0; temp[x] != NULL; ++x)
-			//	printf("%s\n", *temp[x]);
-		//	}
+	
 		else printf("%s ", argv[x] );
 	            }
 	printf("\n");
 	}
 
-
-
-// WRITTEN BY MICHAEL RYAN WITH HELP FROM KOREN COLE
-//	char * add;
-//	bool valid_directory = false;
+	// WRITTEN BY Daniel Marquez
+	
 	else if(strcmp(argv[0], "cd") == 0 ) {
 		if( x == 1 || !strcmp(argv[1],"~") ) {
 			chdir( getenv("HOME"));
 			setenv("PWD",getenv("HOME"),1);
         		}
 	
-
-
 		else if(x == 2){
 			//if ( !strcmp( getcwd(NULL, 100), getenv("HOME") ) )
 				
@@ -483,19 +467,14 @@ int main(){
 					}
 			else setenv("PWD",getcwd(NULL,PATH_MAX),1);
 			}
-
 			
 		else if(x > 2)				//more than 2
                 	printf("Error: Too many arguments\n");
                			
-
 		}
-
 	else{
 		forkANDexec(out_file, in_file, argv);
-
 	}
-	
  }
 
  exit(EXIT_SUCCESS);
