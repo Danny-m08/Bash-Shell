@@ -215,7 +215,7 @@ void prompt( ){
 //for a similar project in UnixTools
 //But the code is 100% mine
 
-int tokenize( char ** arg, char *line, char **out_redir, char **in_redir){	
+int tokenize( char ** arg, char *line, char **out_redir, char **in_redir, int *pipe){	
  int i = 0;
  int it = 0;
  char temp;
@@ -302,6 +302,9 @@ int tokenize( char ** arg, char *line, char **out_redir, char **in_redir){
                   }
 	else if( isspace(line[i]) )
 		line[i] = '\0';
+
+	else if( line[i] == '|' )
+		pipe += 1;
 	
 	 ++i;
          }
@@ -315,6 +318,43 @@ int tokenize( char ** arg, char *line, char **out_redir, char **in_redir){
 
 
 
+forkANDexec(char * out_file, char *in_file, char **argv){
+	int x, status;
+        pid_t child_id, temp_id;
+        int fd1, fd2;	
+	char  path[PATH_MAX];
+
+       if( (child_id = fork() ) == 0 ){
+           	if (out_file != NULL ){
+			fd1 = open( out_file, O_CREAT | O_WRONLY, S_IWUSR | S_IRUSR);
+			//if( fd1!= -1 )
+				dup2(fd1, 1);
+			printf("redirecting to %s\n", out_file);
+			}
+		if( in_file != NULL ){
+			fd1 = open( in_file, O_RDONLY );
+			if( fd1 != -1 )
+				dup2(fd1, 0);
+			}
+
+		strcpy( path, "/bin/");
+		strcat( path, argv[0] );
+                execv( path , argv);
+		strcpy(path, getcwd(NULL,PATH_MAX) );
+		strcat(path, argv[0]);
+		execv(path, argv);				//code executed by child process
+                printf("Unknown command %s\n", argv[0] );	//
+                }
+	else{
+	//	printf("child_id: %i\n",child_id);
+	 while(1){
+							//wait for child process to return
+		x = waitpid(child_id, &status, 0);	//parent process code`
+		if( x == child_id)
+			break;
+		}
+   
+	}
 
 
 
@@ -341,6 +381,7 @@ int main(){
 
 
         int x, status;
+	int pipe;
 	pid_t child_id, temp_id;
         
 	int fd1, fd2;
@@ -360,9 +401,15 @@ int main(){
       for(x = 0; x < 10; ++x)
 		argv[x] = NULL;
 
-        x = tokenize(argv,command, &out_file, &in_file);                    
-	printf("out_file: %s\n", out_file);
-	printf("in_file: %s\n",in_file);
+        x = tokenize(argv,command, &out_file, &in_file, &pipe);                    
+
+	for(x = 0; argv[x] != NULL; ++x){
+		if( !strcmp("|",argv[x]))
+			strcpy(argv[x],"\0");
+
+
+//	printf("out_file: %s\n", out_file);
+//	printf("in_file: %s\n",in_file);
 	for(x=0; argv[x] != NULL; ++x )
 		printf("%s\n", argv[x]);
 
@@ -444,40 +491,11 @@ int main(){
 
 		}
 
-
-	
-
-       else if( (child_id = fork() ) == 0 ){
-           	if (out_file != NULL ){
-			fd1 = open( out_file, O_CREAT | O_WRONLY, S_IWUSR | S_IRUSR);
-			//if( fd1!= -1 )
-				dup2(fd1, 1);
-			printf("redirecting to %s\n", out_file);
-			}
-		if( in_file != NULL ){
-			fd1 = open( in_file, O_RDONLY );
-			if( fd1 != -1 )
-				dup2(fd1, 0);
-			}
-		char  path[PATH_MAX];
-		strcpy( path, "/bin/");
-		strcat( path, argv[0] );
-                execv( path , argv);
-		strcpy(path, getcwd(NULL,PATH_MAX) );
-		strcat(path, argv[0]);
-		execv(path, argv);				//code executed by child process
-                printf("Unknown command %s\n", argv[0] );	//
-                }
 	else{
-	//	printf("child_id: %i\n",child_id);
-	 while(1){
-							//wait for child process to return
-		x = waitpid(child_id, &status, 0);	//parent process code`
-		if( x == child_id)
-			break;
-		}
-   
+		forkANDexec(out_file, in_file, argv);
+
 	}
+	
  }
 
  exit(EXIT_SUCCESS);
