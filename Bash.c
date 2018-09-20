@@ -360,18 +360,13 @@ forkANDexec(char * out_file, char *in_file, char **argv){
 
 
 
-
-
-
-
-
-
 int main(){
   
+
 	
 	//take this first timevalue, store in struct	
-	struct timeval  first, second;
-        gettimeofday(&first, NULL);
+	struct timeval  first, second;			//create structs for first and second values
+        gettimeofday(&first, NULL);			//grab input when main begins
 
 
         char *command = malloc(256 * sizeof(char));
@@ -413,8 +408,8 @@ int main(){
         {
                 gettimeofday(&second, NULL);		//before, ending, take second time value and put in struct
                 printf("Exiting...\n\tSession time: %ds\n", (int) (second.tv_usec - first.tv_usec) / 1000000 + (int) (second.tv_sec - first.tv_sec));
-		//get difference between adn first and second struct
-                break;
+		//get difference between and first and second struct
+                break;	//must be multiplied to put into seconds
         }
                 
 
@@ -472,6 +467,52 @@ int main(){
                 	printf("Error: Too many arguments\n");
                			
 		}
+	
+	else if(strcmp(argv[0], "io") == 0)
+	{
+		
+		/*char entire_string[300];
+		strcpy(entire_string, "/proc/");
+		char new_int[10];
+		int pid = getpid();
+		sprintf(new_int,"%d",pid);
+		strcat(entire_string,new_int);
+		strcat(entire_string, "/io");*/
+		
+		pid_t child = getpid();	
+		pid_t parent = getppid();		//get child, parent, and fork
+    		pid_t pid = fork();
+		if (pid > 0) {		//parent
+
+        		char line[200];		//create space for inpute
+        		sprintf(line, "/proc/%d/io", child);	//use child for io
+        		wait(0);			//wait for child
+			FILE * file = fopen(line, "r");
+        		while (fgets(line, sizeof(line), file)) {	//store data
+           	 		printf("%s", line);		
+        		}
+			char* args[] = { "cat", "output.txt" };		//print data
+                        execv(args[0], args);	
+        		continue;				//send to top
+
+    		} else if(pid == 0){
+			//this is where the rest of command is executed, before data is printed by parent
+			char hold[200];			//hold input
+			strcat(hold, argv[1]);	
+			strcat(hold,argv[2]);		//grab second and third args
+			char * secondtwo[] = {argv[1], argv[2]};	
+			char command[100];		
+			strcpy(command, "/bin/");
+			strcat(command,argv[1]);	//used to carry out command
+			execv(command, secondtwo);	
+
+			exit(1);		//back to parent for printing
+    		}
+		else{
+                        perror("error");	//if pid is neg, fork() was unsuccessful
+                        continue;	
+		}
+	}
 	else{
 		forkANDexec(out_file, in_file, argv);
 	}
