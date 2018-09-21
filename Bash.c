@@ -15,6 +15,51 @@
 #include <dirent.h>
 #include<string.h>
 
+bool amp_present(char ** arg, int arg_num)
+{
+        int i = 0;
+        bool present = false;
+        for(i = 0; i < arg_num; i++)
+        {
+                if(strchr(arg[i], '&') != NULL)
+                        present = true;
+        }
+        return present;
+
+}
+
+bool multiple_amps(char ** arg, int arg_num)
+{
+        int i = 0;
+        int count = 0;
+        bool multiple = false;
+        for(i = 0; i < arg_num; i++)
+        {
+                if(strchr(arg[i], '&') != NULL)
+                        count++;
+        }
+        if(count > 1)
+                multiple = true;
+        return multiple;
+
+
+}
+
+int amp_location(char ** arg, int arg_num)
+{
+        int i = 0;
+        int location;
+        for(i = 0; i < arg_num; i++)
+        {
+                if(strchr(arg[i], '&') != NULL)
+                        location = i;
+        }
+        return location;
+
+
+}
+
+
 char *expandPath(char *path, int cmd)
 {
         char * tempPath; // = malloc(strlen(path) * sizeof(char));
@@ -410,6 +455,22 @@ int main(){
                 printf("Exiting...\n\tSession time: %ds\n", (int) (second.tv_usec - first.tv_usec) / 1000000 + (int) (second.tv_sec - first.tv_sec));
 		//get difference between and first and second struct
                 break;	//must be multiplied to put into seconds
+        }
+	
+	else if(amp_present(argv, x) == true)
+        {
+                printf("Background process request detected\n");
+                /*if((multiple_amps(argv, x) == true) && (strchr(argv[0], '&') == 0)){
+                        printf("Invalid & placement\n");
+                        continue;
+                }
+                if(amp_location(argv,x) != (x - 1)){
+                        printf("Invalid & placement\n");
+                        continue;
+                }
+                pid_t pid = getpid();
+                printf("pid : %d\n", pid);
+                continue;*/
         }
                 
 
