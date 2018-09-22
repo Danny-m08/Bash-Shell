@@ -156,10 +156,10 @@ int tokenize( char ** arg, char *line, char **out_redir, char **in_redir, int *p
 		return -1;
 			}
 		
-	if( pipe > 0 && it != (*pipe + 1) ){
-		printf("Incorrect pipe syntax\n");	
-		pipe = 0;
-		}
+	//if( pipe > 0 && it != (*pipe + 1) ){
+	//	printf("Incorrect pipe syntax\n");	
+	//	pipe = 0;
+	//	}
  return it;
  }
 
@@ -174,7 +174,7 @@ int getNextArgs( char ** argv ){
 	int it;
 	//printf("getNextArgs function ... \n");
 	for( it = 0; argv[it] != NULL; ++it){
-		printf("%p\n", argv[it]);
+	//	printf("%p\n", argv[it]);
 		if(  argv[it][0] == '\0' ){		//Null characters are saved to argv to indicate a pipe
 			argv[it] = NULL;		//set argv equal to NULL for execv function
 			//printf("%i\n", argv[it] == NULL );
@@ -304,53 +304,37 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 	else if( pipe_ > 0 ){				
-		int i = 0;
+		int i = 0, fd = 0;
 		char ** temp = &argv[0];
 		pid_t child_id;
-		int pipes[pipe_ * 2];
+		int pipes[2];
 		int status;
 		char path[PATH_MAX];
-
-		for( int x = 0; x < pipe_ * 2; ){
-			pipe( &pipes[x] );
-			x += 2;
-			}		
-
+		
+		//for( int x = 0; x < pipe_ * 2; ){
+		//	pipe( &pipes[x] );
+		//	x += 2;
+		//	}		
+		printf("pipes %i\n", pipe_);
 		pipe (pipes);
+		printf("After pipe\n");
 		it = 0;
 		for(x = 0; x <= pipe_; ++x){
+			
 			it += getNextArgs( &argv[it] );
 			
 			if ( (child_id = fork()) == 0){
-				
-				if( x % 2 == 0 ){ 	//if writing
-				
-
-				
-				dup2(pipes[1],0);
-				close(pipes[0]);
-				close(pipes[1]);
-	
+				printf("Child process %i: \n", x );	
+	//		 	printf("%i\n",dup2(fd, 0));
+				printf("dup to file descriptor");
+				if( it != -1 )	{			//dup when there is a next command
+					dup2(pipes[1],1);	
+					printf("dup stdout to write end of pipe");
+					}
+				printf("closing read end of pipe\n");
+				close (pipes[0]);			//close read end of pipe
+				printf("starting execution ...\n");
 				strcpy( path, "/bin/");
 	                	strcat( path, argv[i] );
         	        	execv( path , &argv[i]);
@@ -362,31 +346,23 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
                			 exit(EXIT_FAILURE);			
 				}
 	
+					
+			
+			while(x = waitpid(child_id, &status, 0)){      //parent process code`
+                		 if( x == child_id)
+                       			break;
+					}
+			close (pipes[1]);	
+			fd = pipes[0];
 			i = it;
 			argv = temp;
-			}
+
+			}	
+		close(pipes[0]);
+		close(pipes[1]);
 		
-		while(x = waitpid(child_id, &status, 0)){      //parent process code`
-                	 if( x == child_id)
-                       		break;		
-				}
-				
-			
-				
-
-			}
-	}
-
-
-
-
-
-
-
-
-
-
-
+		}
+		
 
 
 
@@ -451,6 +427,7 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
 
 	// WRITTEN BY Daniel Marquez
 	
+
 	else if(strcmp(argv[0], "cd") == 0 ) {					//
 		
 		
@@ -488,7 +465,48 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
                			
 		}
 
-
+		else if(strcmp(argv[0], "io") == 0)
+	{
+		
+		/*char entire_string[300];
+		strcpy(entire_string, "/proc/");
+		char new_int[10];
+		int pid = getpid();
+		sprintf(new_int,"%d",pid);
+		strcat(entire_string,new_int);
+		strcat(entire_string, "/io");*/
+		
+		pid_t child = getpid();	
+		pid_t parent = getppid();		//get child, parent, and fork
+    		pid_t pid = fork();
+		if (pid > 0) {		//parent
+         		char line[200];		//create space for inpute
+        		sprintf(line, "/proc/%d/io", child);	//use child for io
+        		wait(0);			//wait for child
+			FILE * file = fopen(line, "r");
+        		while (fgets(line, sizeof(line), file)) {	//store data
+           	 		printf("%s", line);		
+        		}
+			char* args[] = { "cat", "output.txt" };		//print data
+                        execv(args[0], args);	
+        		continue;				//send to top
+     		} else if(pid == 0){
+			//this is where the rest of command is executed, before data is printed by parent
+			char hold[200];			//hold input
+			strcat(hold, argv[1]);	
+			strcat(hold,argv[2]);		//grab second and third args
+			char * secondtwo[] = {argv[1], argv[2]};	
+			char command[100];		
+			strcpy(command, "/bin/");
+			strcat(command,argv[1]);	//used to carry out command
+			execv(command, secondtwo);	
+ 			exit(1);		//back to parent for printing
+    		}
+		else{
+                        perror("error");	//if pid is neg, fork() was unsuccessful
+                        continue;	
+		}
+	}
 
 	
 	else
