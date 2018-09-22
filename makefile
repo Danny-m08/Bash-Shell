@@ -1,2 +1,2 @@
 proj:	Bash.c
-	gcc  -lreadline Bash.c -o Bash -g
+	gcc -std=c99  -lreadline Bash.c -o Bash -g
