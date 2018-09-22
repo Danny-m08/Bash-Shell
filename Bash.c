@@ -16,7 +16,7 @@
 #include <dirent.h>
 #include<string.h>
 
-<<<<<<< HEAD
+//<<<<<<< HEAD
 
 void prompt( ){
  int len;
@@ -553,7 +553,7 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
 
 
 //Writen by Korren
-=======
+//=======
 bool amp_present(char ** arg, int arg_num)
 {
         int i = 0;
@@ -567,7 +567,7 @@ bool amp_present(char ** arg, int arg_num)
 
 }
 
-bool multiple_amps(char ** arg, int arg_num)
+//bool multiple_amps(char ** arg, int arg_num)
 {
         int i = 0;
         int count = 0;
@@ -599,7 +599,7 @@ int amp_location(char ** arg, int arg_num)
 }
 
 
->>>>>>> ed285b90ff8b1ed350301c06d6350ce261908e8f
+//>>>>>>> ed285b90ff8b1ed350301c06d6350ce261908e8f
 char *expandPath(char *path, int cmd)
 {
         char * tempPath; // = malloc(strlen(path) * sizeof(char));
