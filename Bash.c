@@ -311,7 +311,7 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
 		int pipes[2];
 		int status;
 		char path[PATH_MAX];
-		
+		int a;
 		//for( int x = 0; x < pipe_ * 2; ){
 		//	pipe( &pipes[x] );
 		//	x += 2;
@@ -325,16 +325,16 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
 			it += getNextArgs( &argv[it] );
 			
 			if ( (child_id = fork()) == 0){
-				printf("Child process %i: \n", x );	
-	//		 	printf("%i\n",dup2(fd, 0));
-				printf("dup to file descriptor");
+				//printf("Child process %i: \n", x );	
+			 	printf("%i\n",dup2(fd, 0));
+				//printf("dup to file descriptor");
 				if( it != -1 )	{			//dup when there is a next command
 					dup2(pipes[1],1);	
-					printf("dup stdout to write end of pipe");
+				//	printf("dup stdout to write end of pipe");
 					}
-				printf("closing read end of pipe\n");
+				//printf("closing read end of pipe\n");
 				close (pipes[0]);			//close read end of pipe
-				printf("starting execution ...\n");
+				//printf("starting execution ...\n");
 				strcpy( path, "/bin/");
 	                	strcat( path, argv[i] );
         	        	execv( path , &argv[i]);
@@ -345,19 +345,20 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
               	  		printf("Unknown command %s\n", argv[i] );       //
                			 exit(EXIT_FAILURE);			
 				}
-	
-					
-			
-			while(x = waitpid(child_id, &status, 0)){      //parent process code`
-                		 if( x == child_id)
-                       			break;
-					}
 			close (pipes[1]);	
 			fd = pipes[0];
 			i = it;
 			argv = temp;
 
-			}	
+			while(a = waitpid(child_id, &status, 0)){      //parent process code`
+                		 if( a == child_id)
+                       			break;
+					}
+
+			}
+					
+			
+			
 		close(pipes[0]);
 		close(pipes[1]);
 		
@@ -511,7 +512,8 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
 	
 	else
 		forkANDexec(out_file, in_file, argv);
-
+		
+	
 }
  }
 // free(prompt);
