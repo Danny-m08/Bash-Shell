@@ -316,20 +316,20 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
 		//	pipe( &pipes[x] );
 		//	x += 2;
 		//	}		
-		printf("pipes %i\n", pipe_);
+	//	printf("pipes %i\n", pipe_);
 		pipe (pipes);
-		printf("After pipe\n");
+	//	printf("After pipe\n");
 		it = 0;
-		for(x = 0; x <= pipe_; ++x){
+		for(x = 0; x <= pipe_; ++x){				// loop through each pair
 			
-			it += getNextArgs( &argv[it] );
+			it += getNextArgs( &argv[it] );			//get iterator of next command
 			
-			if ( (child_id = fork()) == 0){
+			if ( (child_id = fork()) == 0){			//fork
 				//printf("Child process %i: \n", x );	
-			 	printf("%i\n",dup2(fd, 0));
+			 	dup2(fd, 0);				//redirect stdin from 
 				//printf("dup to file descriptor");
 				if( it != -1 )	{			//dup when there is a next command
-					dup2(pipes[1],1);	
+					dup2(pipes[1],1);		
 				//	printf("dup stdout to write end of pipe");
 					}
 				//printf("closing read end of pipe\n");

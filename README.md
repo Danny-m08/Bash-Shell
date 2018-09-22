@@ -30,10 +30,13 @@ To build:
 make
 
 Known bugs:
-No known bugs at this time.
+
+-echo is supported with io redirection but not with pipes
+
 
 To do:
 Background Processing. Attempt was made. 
 
 Additional comments:
-No additional comments. Have a nice day!
+
+-	Test for Multiple pipeline implementation for Extra Credit
