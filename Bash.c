@@ -482,14 +482,14 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
                			
 		}
 
-		/*else if(strcmp(argv[0], "io") == 0)
+		else if(strcmp(argv[0], "io") == 0)
 	{
 		
 		char entire_string[300];
 		strcpy(entire_string, "/proc/");
 		char new_int[10];
 		//int pid = getpid();
-		sprintf(new_int,"%d",pid);
+		sprintf(new_int,"%d",getpid());
 		strcat(entire_string,new_int);
 		strcat(entire_string, "/io");
 		
@@ -510,10 +510,13 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
         		continue;				//send to top
      		} else if(pid == 0){
 			//this is where the rest of command is executed, before data is printed by parent
-			char hold[200];			//hold input
-			strcat(hold, argv[1]);	
-			strcat(hold,argv[2]);		//grab second and third args
-			char * secondtwo[] = {argv[1], argv[2]};	
+			//printf("argv[1], %s", argv[1]);
+			//printf("argv[2], %s", argv[2]);
+
+			//char hold[200];			//hold input
+			//strcat(hold, argv[1]);	
+			//strcat(hold,argv[2]);		//grab second and third args
+			char * secondtwo[] = {argv[1], argv[2], NULL};	
 			char command[100];		
 			strcpy(command, "/bin/");
 			strcat(command,argv[1]);	//used to carry out command
@@ -524,7 +527,7 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
                         perror("error");	//if pid is neg, fork() was unsuccessful
                         continue;	
 		}
-	}*/
+	}
 
 	
 	else
@@ -589,7 +592,6 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
 
 
 
-//Writen by Korren
 //=======
 bool amp_present(char ** arg, int arg_num)
 {
