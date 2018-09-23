@@ -50,11 +50,13 @@ int tokenize( char ** arg, char *line, char **out_redir, char **in_redir, int *p
  int it = 0;			//argv iterator
   *out_redir = *in_redir = NULL;	// string to output and input redirect
  bool in = false, out = false;		// in/out redirect
+ int commands = 0;
 
- while( line[i] != '\0' ){
+ while( 1 ){
 
 
 	if( line[i] == '>' ){					//
+		commands ++;
 		out = true;					//indicate there is output redirection
 		line[i] = '\0';
 		while( isspace( line[++i] ))			//read until no blank space
@@ -68,7 +70,8 @@ int tokenize( char ** arg, char *line, char **out_redir, char **in_redir, int *p
 			}
 		}
 	
-	else if( line[i] == '<' ){			
+	else if( line[i] == '<' ){
+		commands ++;			
 		in = true;					//indicate input redirection
 		line[i] = '\0';		
 		while( isspace( line[++i] ) )			//read until no blank space
@@ -124,18 +127,27 @@ int tokenize( char ** arg, char *line, char **out_redir, char **in_redir, int *p
 		line[i] = '\0';
 
 	else if( line[i] == '|' ){			//
-		 arg[it] = &line[i];			//save pipe token to argv
+		if (it != 0){
+			if ( strcmp(arg[it - 1],"\0") )	
+				commands++;
+			}
+		arg[it] = &line[i];			//save pipe token to argv
 		 line[i] = '\0';			//set val equal to null 
                  ++it;
 		 ++(*pipe);				//increment pipe count
                  }
 
 
+	else if( line[i] == '\0' ){
+		if( arg[it-1][0] != '\0')
+			commands ++;
+		break;
+		}
 	else {
 						
         	arg[it] = &line[i];      		//save any other character to the argv
                 ++it;
-                
+		                
                 while( ++i ){
 					
 			if( line[i] == '<' || line[i] == '>' || isspace(line[i]) || line[i] == '\0' || line[i] == '|'){		//read til these characters
@@ -148,6 +160,7 @@ int tokenize( char ** arg, char *line, char **out_redir, char **in_redir, int *p
 
 
 	 ++i;
+
          }
  
  
@@ -155,11 +168,11 @@ int tokenize( char ** arg, char *line, char **out_redir, char **in_redir, int *p
 		printf("Invalid redirect syntax\n");					
 		return -1;
 			}
-		
-	//if( pipe > 0 && it != (*pipe + 1) ){
-	//	printf("Incorrect pipe syntax\n");	
-	//	pipe = 0;
-	//	}
+	printf( "pipes: %i\tcommdans: %i\n", *pipe, commands); 	
+	if( *pipe > 0 && *pipe != commands - 1) {
+		printf("Incorrect pipe syntax\n");	
+		return -1;
+		}
  return it;
  }
 
@@ -280,8 +293,8 @@ int main(){
 		argv[it] = NULL;
 			
         x = tokenize(argv,command, &out_file, &in_file, &pipe_);   //tokenize the command into argv pointers        
-	printf("Tokens: %i\n", x);					
-	printf("# of pipes: %i\n", pipe_);
+//	printf("Tokens: %i\n", x);					
+//	printf("# of pipes: %i\n", pipe_);
 			
 	for(it=0; argv[it] != NULL; ++it )			//print tokens
 		printf("%s ", argv[it]);
@@ -320,15 +333,17 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
 		pipe (pipes);
 	//	printf("After pipe\n");
 		it = 0;
-		for(x = 0; x <= pipe_; ++x){				// loop through each pair
-			
+		for(x = 0; x <= pipe_ ; ++x){				// loop through each pair
+			a = it;
 			it += getNextArgs( &argv[it] );			//get iterator of next command
 			
 			if ( (child_id = fork()) == 0){			//fork
 				//printf("Child process %i: \n", x );	
-			 	dup2(fd, 0);				//redirect stdin from 
+			 	dup2(fd, 0);
+				//printf("%i\n", a);				//redirect stdin from 
+				//printf("%i\n",it);
 				//printf("dup to file descriptor");
-				if( it != -1 )	{			//dup when there is a next command
+				if( it != a - 1 )	{			//dup when there is a next command
 					dup2(pipes[1],1);		
 				//	printf("dup stdout to write end of pipe");
 					}
@@ -341,19 +356,20 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
                 		strcpy(path, getcwd(path,PATH_MAX) );
 	                	strcat(path, argv[i]);
         	        	execv(path, &argv[i]);        
-				printf("%s\n", path);                  //code executed by child process
+	//			printf("%s\n", path);                  //code executed by child process
               	  		printf("Unknown command %s\n", argv[i] );       //
                			 exit(EXIT_FAILURE);			
 				}
-			close (pipes[1]);	
-			fd = pipes[0];
-			i = it;
-			argv = temp;
-
+			
 			while(a = waitpid(child_id, &status, 0)){      //parent process code`
                 		 if( a == child_id)
                        			break;
 					}
+
+			close (pipes[1]);	
+			fd = pipes[0];
+			i = it;
+			argv = temp;
 
 			}
 					
@@ -466,23 +482,24 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
                			
 		}
 
-		else if(strcmp(argv[0], "io") == 0)
+		/*else if(strcmp(argv[0], "io") == 0)
 	{
 		
-		/*char entire_string[300];
+		char entire_string[300];
 		strcpy(entire_string, "/proc/");
 		char new_int[10];
-		int pid = getpid();
+		//int pid = getpid();
 		sprintf(new_int,"%d",pid);
 		strcat(entire_string,new_int);
-		strcat(entire_string, "/io");*/
+		strcat(entire_string, "/io");
 		
-		pid_t child = getpid();	
-		pid_t parent = getppid();		//get child, parent, and fork
+			pid_t parent = getppid();		//get child, parent, and fork
     		pid_t pid = fork();
 		if (pid > 0) {		//parent
          		char line[200];		//create space for inpute
-        		sprintf(line, "/proc/%d/io", child);	//use child for io
+        		pid_t child = getpid();	
+
+			sprintf(line, "/proc/%d/io", child);	//use child for io
         		wait(0);			//wait for child
 			FILE * file = fopen(line, "r");
         		while (fgets(line, sizeof(line), file)) {	//store data
@@ -507,7 +524,7 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
                         perror("error");	//if pid is neg, fork() was unsuccessful
                         continue;	
 		}
-	}
+	}*/
 
 	
 	else
@@ -519,7 +536,7 @@ if( x!= -1 ){							//if no error in tokenizer execute following conditions
 // free(prompt);
  exit(EXIT_SUCCESS);
 
-}
+}	
 
 
 
